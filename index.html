@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI 正则表达式助手</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#0f172a;--surface:#1e293b;--surface2:#334155;--border:#475569;--primary:#6366f1;--primary-hover:#818cf8;--accent:#22d3ee;--text:#f1f5f9;--text2:#94a3b8;--success:#22c55e;--warning:#f59e0b;--danger:#ef4444;--radius:12px}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;line-height:1.6}
+a{color:var(--accent);text-decoration:none}
+.container{max-width:1200px;margin:0 auto;padding:0 20px}
+header{background:linear-gradient(135deg,#1e1b4b,#312e81);border-bottom:1px solid var(--border);padding:20px 0;text-align:center}
+header h1{font-size:1.8rem;background:linear-gradient(135deg,var(--primary-hover),var(--accent));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+header p{color:var(--text2);margin-top:4px;font-size:0.9rem}
+.api-bar{background:var(--surface);border-bottom:1px solid var(--border);padding:12px 0}
+.api-bar .container{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.api-bar label{color:var(--text2);font-size:0.85rem;white-space:nowrap}
+.api-bar input{flex:1;min-width:200px;padding:8px 12px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:0.85rem;outline:none}
+.api-bar input:focus{border-color:var(--primary)}
+.api-bar .save-btn{padding:8px 16px;background:var(--primary);color:#fff;border:none;border-radius:8px;cursor:pointer;font-size:0.85rem}
+.api-bar .save-btn:hover{background:var(--primary-hover)}
+.api-status{font-size:0.8rem;padding:2px 8px;border-radius:12px}
+.api-status.ok{background:#22c55e33;color:var(--success)}
+.api-status.no{background:#ef444433;color:var(--danger)}
+main{padding:24px 0}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+@media(max-width:768px){.grid{grid-template-columns:1fr}}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px;transition:border-color .2s}
+.card:hover{border-color:var(--primary)}
+.card h2{font-size:1.1rem;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.card h2 .icon{font-size:1.3rem}
+textarea,input[type="text"]{width:100%;padding:12px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:0.9rem;resize:vertical;outline:none;font-family:inherit}
+textarea:focus,input[type="text"]:focus{border-color:var(--primary)}
+textarea{min-height:80px}
+.btn{padding:10px 20px;border:none;border-radius:8px;cursor:pointer;font-size:0.9rem;font-weight:600;transition:all .2s;display:inline-flex;align-items:center;gap:6px}
+.btn-primary{background:var(--primary);color:#fff}
+.btn-primary:hover{background:var(--primary-hover);transform:translateY(-1px)}
+.btn-primary:disabled{opacity:0.5;cursor:not-allowed;transform:none}
+.btn-secondary{background:var(--surface2);color:var(--text)}
+.btn-secondary:hover{background:var(--border)}
+.btn-sm{padding:6px 12px;font-size:0.8rem}
+.regex-output{margin-top:16px;padding:16px;background:var(--bg);border-radius:8px;border:1px solid var(--border);font-family:'SF Mono',Monaco,Consolas,monospace;font-size:1.1rem;color:var(--accent);word-break:break-all;position:relative;min-height:48px}
+.regex-output .copy-btn{position:absolute;top:8px;right:8px;padding:4px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--text2);cursor:pointer;font-size:0.75rem}
+.regex-output .copy-btn:hover{color:var(--text);border-color:var(--primary)}
+.explanation{margin-top:12px;padding:14px;background:var(--bg);border-radius:8px;border-left:3px solid var(--primary);font-size:0.85rem;color:var(--text2);line-height:1.8}
+.explanation .part{display:inline-block;margin:2px 4px;padding:2px 8px;border-radius:4px;font-family:monospace;font-size:0.85rem}
+.explanation .part-char{background:#6366f133;color:var(--primary-hover)}
+.explanation .part-quant{background:#22d3ee33;color:var(--accent)}
+.explanation .part-group{background:#f59e0b33;color:var(--warning)}
+.explanation .part-anchor{background:#22c55e33;color:var(--success)}
+.explanation .part-escape{background:#ef444433;color:var(--danger)}
+.match-input{margin-top:12px}
+.match-input label{display:block;color:var(--text2);font-size:0.85rem;margin-bottom:6px}
+.match-result{margin-top:10px;padding:12px;background:var(--bg);border-radius:8px;font-size:0.85rem;min-height:40px;border:1px solid var(--border)}
+.match-result .match{background:var(--primary);color:#fff;padding:1px 4px;border-radius:3px;margin:0 1px}
+.match-count{margin-top:6px;font-size:0.8rem;color:var(--text2)}
+.templates-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px;margin-top:12px}
+.template-card{padding:12px;background:var(--bg);border:1px solid var(--border);border-radius:8px;cursor:pointer;transition:all .2s;text-align:center}
+.template-card:hover{border-color:var(--primary);background:var(--surface2);transform:translateY(-2px)}
+.template-card .t-icon{font-size:1.5rem;margin-bottom:4px}
+.template-card .t-name{font-size:0.85rem;font-weight:600}
+.template-card .t-desc{font-size:0.7rem;color:var(--text2);margin-top:2px}
+.code-tabs{display:flex;gap:0;margin-top:12px;border-bottom:2px solid var(--border)}
+.code-tab{padding:8px 16px;background:none;border:none;color:var(--text2);cursor:pointer;font-size:0.85rem;border-bottom:2px solid transparent;margin-bottom:-2px;transition:all .2s}
+.code-tab:hover{color:var(--text)}
+.code-tab.active{color:var(--primary-hover);border-bottom-color:var(--primary)}
+.code-block{margin-top:0;padding:16px;background:var(--bg);border-radius:0 0 8px 8px;border:1px solid var(--border);border-top:none;position:relative}
+.code-block pre{font-family:'SF Mono',Monaco,Consolas,monospace;font-size:0.82rem;color:var(--text);white-space:pre-wrap;word-break:break-all;line-height:1.6}
+.code-block .copy-btn{position:absolute;top:8px;right:8px;padding:4px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--text2);cursor:pointer;font-size:0.75rem}
+.code-block .copy-btn:hover{color:var(--text);border-color:var(--primary)}
+.flags-bar{display:flex;gap:6px;margin-top:10px;flex-wrap:wrap;align-items:center}
+.flags-bar label{font-size:0.8rem;color:var(--text2);margin-right:4px}
+.flag-btn{padding:4px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--text2);cursor:pointer;font-size:0.8rem;font-family:monospace;transition:all .2s}
+.flag-btn.active{background:var(--primary);color:#fff;border-color:var(--primary)}
+.spinner{display:inline-block;width:16px;height:16px;border:2px solid #fff3;border-top-color:#fff;border-radius:50%;animation:spin .6s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.toast{position:fixed;bottom:30px;left:50%;transform:translateX(-50%) translateY(100px);background:var(--success);color:#fff;padding:10px 24px;border-radius:8px;font-size:0.9rem;transition:transform .3s;z-index:999;pointer-events:none}
+.toast.show{transform:translateX(-50%) translateY(0)}
+.section-title{font-size:1.2rem;margin:24px 0 16px;color:var(--text);display:flex;align-items:center;gap:8px}
+.full-width{grid-column:1/-1}
+</style>
+</head>
+<body>
+<header>
+<div class="container">
+<h1>🧩 AI 正则表达式助手</h1>
+<p>自然语言描述 → AI生成正则 → 实时测试 → 多语言代码</p>
+</div>
+</header>
+
+<div class="api-bar">
+<div class="container">
+<label>🔑 DeepSeek API Key:</label>
+<input type="password" id="apiKey" placeholder="输入你的 DeepSeek API Key...">
+<button class="save-btn" onclick="saveApiKey()">保存</button>
+<span class="api-status no" id="apiStatus">✗ 未配置</span>
+</div>
+</div>
+
+<main>
+<div class="container">
+
+<div class="grid">
+<!-- Left: AI Generate -->
+<div class="card">
+<h2><span class="icon">🤖</span> AI 生成正则</h2>
+<textarea id="nlInput" placeholder="用自然语言描述你需要的正则表达式...&#10;例如：匹配中国大陆手机号码&#10;例如：提取HTML中所有的链接地址&#10;例如：验证邮箱格式是否正确"></textarea>
+<div class="btn-group">
+<button class="btn btn-primary" id="generateBtn" onclick="generateRegex()">🤖 AI 生成</button>
+</div>
+<div class="regex-output" id="regexDisplay"><span style="color:var(--text2)">正则表达式将显示在这里...</span></div>
+<div class="explanation" id="explanation"></div>
+</div>
+
+<!-- Right: Test -->
+<div class="card">
+<h2><span class="icon">🧪</span> 实时测试</h2>
+<div class="match-input">
+<label>手动输入正则（可选）：</label>
+<input type="text" id="regexManualInput" placeholder="直接输入正则表达式...">
+</div>
+<div class="flags-bar">
+<label>标志位：</label>
+<button class="flag-btn" data-flag="g">g 全局</button>
+<button class="flag-btn" data-flag="i">i 忽略大小写</button>
+<button class="flag-btn" data-flag="m">m 多行</button>
+<button class="flag-btn" data-flag="s">s 点匹配换行</button>
+</div>
+<div class="match-input" style="margin-top:12px">
+<label>测试文本：</label>
+<textarea id="testInput" placeholder="输入要测试的文本..." rows="4"></textarea>
+</div>
+<div class="match-result" id="matchResult"><span style="color:var(--text2)">匹配结果将显示在这里...</span></div>
+<div class="match-count" id="matchCount"></div>
+</div>
+
+<!-- Templates -->
+<div class="card full-width">
+<h2><span class="icon">📚</span> 常用正则模板</h2>
+<div class="templates-grid" id="templatesGrid"></div>
+</div>
+
+<!-- Code Generation -->
+<div class="card full-width">
+<h2><span class="icon">💻</span> 多语言代码生成</h2>
+<div class="code-tabs">
+<button class="code-tab active" data-lang="javascript">JavaScript</button>
+<button class="code-tab" data-lang="python">Python</button>
+<button class="code-tab" data-lang="java">Java</button>
+<button class="code-tab" data-lang="go">Go</button>
+</div>
+<div class="code-block">
+<pre id="codeContent">// 先生成或选择一个正则表达式</pre>
+<button class="copy-btn" onclick="copyCode()">复制代码</button>
+</div>
+</div>
+</div>
+
+</div>
+</main>
+
+<footer style="text-align:center;padding:20px;color:var(--text2);font-size:0.8rem;border-top:1px solid var(--border);margin-top:20px">
+AI 正则表达式助手 · Powered by DeepSeek API
+</footer>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ===== State =====
+const state = { apiKey: localStorage.getItem('deepseek_api_key') || '', currentRegex: '', currentFlags: 'g', loading: false };
+const $ = id => document.getElementById(id);
+const apiKeyInput = $('apiKey');
+const apiStatus = $('apiStatus');
+const nlInput = $('nlInput');
+const generateBtn = $('generateBtn');
+const regexDisplay = $('regexDisplay');
+const explanationDiv = $('explanation');
+const testInput = $('testInput');
+const matchResult = $('matchResult');
+const matchCount = $('matchCount');
+const flagInputs = document.querySelectorAll('.flag-btn');
+const codeTabs = document.querySelectorAll('.code-tab');
+const codeContent = $('codeContent');
+const toast = $('toast');
+
+if (state.apiKey) { apiKeyInput.value = state.apiKey; updateApiStatus(true); }
+
+// ===== Utilities =====
+function escHtml(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function copyRegex() { if (state.currentRegex) navigator.clipboard.writeText(state.currentRegex).then(() => showToast('已复制到剪贴板')); }
+function copyCode() { navigator.clipboard.writeText(codeContent.textContent).then(() => showToast('代码已复制')); }
+function showToast(msg, type='success') {
+  toast.textContent = msg;
+  toast.style.background = type==='warning' ? 'var(--warning)' : type==='error' ? 'var(--danger)' : 'var(--success)';
+  toast.classList.add('show');
+  setTimeout(() => toast.classList.remove('show'), 2500);
+}
+
+// ===== API Key =====
+function saveApiKey() {
+  const key = apiKeyInput.value.trim();
+  if (key) { state.apiKey = key; localStorage.setItem('deepseek_api_key', key); updateApiStatus(true); showToast('API Key 已保存'); }
+  else { localStorage.removeItem('deepseek_api_key'); state.apiKey = ''; updateApiStatus(false); }
+}
+function updateApiStatus(ok) {
+  apiStatus.className = 'api-status ' + (ok ? 'ok' : 'no');
+  apiStatus.textContent = ok ? '✓ 已配置' : '✗ 未配置';
+}
+
+// ===== Templates =====
+const templates = [
+  { icon:'📧', name:'邮箱', desc:'Email地址', regex:'[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}', flags:'g', example:'test@example.com hello@world.org' },
+  { icon:'📱', name:'手机号', desc:'中国大陆', regex:'1[3-9]\\d{9}', flags:'g', example:'我的手机号是13812345678，备用15900001111' },
+  { icon:'🌐', name:'URL', desc:'网址链接', regex:'https?://[\\w\\-._~:/?#\\[\\]@!$&\'()*+,;=%]+', flags:'gi', example:'访问 https://example.com/path?q=1 或 http://test.cn' },
+  { icon:'🖥️', name:'IPv4', desc:'IP地址', regex:'(?:(?:25[0-5]|2[0-4]\\d|[01]?\\d\\d?)\\.){3}(?:25[0-5]|2[0-4]\\d|[01]?\\d\\d?)', flags:'g', example:'服务器IP: 192.168.1.1 和 10.0.0.255' },
+  { icon:'📅', name:'日期', desc:'YYYY-MM-DD', regex:'\\d{4}-(?:0[1-9]|1[0-2])-(?:0[1-9]|[12]\\d|3[01])', flags:'g', example:'日期 2024-01-15 到 2024-12-31' },
+  { icon:'🔑', name:'密码强度', desc:'8+位含大小写数字', regex:'(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)[a-zA-Z\\d@$!%*?&]{8,}', flags:'', example:'Abc12345' },
+  { icon:'🏷️', name:'HTML标签', desc:'匹配标签', regex:'<([a-zA-Z][a-zA-Z0-9]*)\\b[^>]*>(.*?)<\\/\\1>', flags:'gs', example:'<div class="x">hello</div><p>world</p>' },
+  { icon:'🆔', name:'身份证号', desc:'18位', regex:'[1-9]\\d{5}(?:19|20)\\d{2}(?:0[1-9]|1[0-2])(?:0[1-9]|[12]\\d|3[01])\\d{3}[\\dXx]', flags:'g', example:'身份证号: 110101199001011234' },
+  { icon:'#️⃣', name:'十六进制颜色', desc:'#RGB/#RRGGBB', regex:'#(?:[0-9a-fA-F]{3}){1,2}\\b', flags:'g', example:'颜色 #ff6600 和 #abc' },
+  { icon:'🇨🇳', name:'中文字符', desc:'匹配中文', regex:'[\\u4e00-\\u9fa5]+', flags:'g', example:'你好世界hello测试test' }
+];
+
+function renderTemplates() {
+  $('templatesGrid').innerHTML = templates.map((t,i) => `<div class="template-card" onclick="useTemplate(${i})"><div class="t-icon">${t.icon}</div><div class="t-name">${t.name}</div><div class="t-desc">${t.desc}</div></div>`).join('');
+}
+renderTemplates();
+
+function useTemplate(idx) {
+  const t = templates[idx];
+  state.currentRegex = t.regex; state.currentFlags = t.flags;
+  regexDisplay.innerHTML = `<code>${escHtml(t.regex)}</code><button class="copy-btn" onclick="copyRegex()">复制</button>`;
+  testInput.value = t.example;
+  updateFlagsUI(); explainRegex(t.regex); doMatch(); generateCodeForAll(t.regex, t.flags);
+  showToast(`已加载模板: ${t.name}`); nlInput.value = '';
+}
+// ===== AI Generate =====
+async function generateRegex() {
+  const desc = nlInput.value.trim();
+  if (!desc) { showToast('请输入正则描述','warning'); return; }
+  if (!state.apiKey) { showToast('请先配置 DeepSeek API Key','warning'); return; }
+  state.loading = true; generateBtn.disabled = true;
+  generateBtn.innerHTML = '<span class="spinner"></span> 生成中...';
+  regexDisplay.innerHTML = '<span style="color:var(--text2)">AI 正在思考...</span>';
+  explanationDiv.innerHTML = '';
+  try {
+    const resp = await fetch('https://api.deepseek.com/chat/completions', {
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':`Bearer ${state.apiKey}`},
+      body: JSON.stringify({
+        model:'deepseek-chat',
+        messages:[
+          {role:'system',content:'你是正则表达式专家。用户会用自然语言描述需求，你需要返回JSON格式：\n{"regex":"正则表达式（不含分隔符）","flags":"标志位如gim","explanation":"逐部分中文解释","example":"一个匹配示例文本"}\n只返回JSON，不要其他内容。正则表达式中的反斜杠用单个反斜杠。'},
+          {role:'user',content:desc}
+        ],
+        temperature:0.1, max_tokens:1000
+      })
+    });
+    if (!resp.ok) { const err = await resp.json().catch(()=>({})); throw new Error(err.error?.message || `API错误: ${resp.status}`); }
+    const data = await resp.json();
+    const content = data.choices[0].message.content.trim();
+    let parsed;
+    try { const j = content.replace(/```json?\s*/g,'').replace(/```/g,'').trim(); parsed = JSON.parse(j); }
+    catch { const m = content.match(/\{[\s\S]*\}/); if(m) parsed=JSON.parse(m[0]); else throw new Error('无法解析AI返回'); }
+    state.currentRegex = parsed.regex; state.currentFlags = parsed.flags || 'g';
+    regexDisplay.innerHTML = `<code>${escHtml(parsed.regex)}</code><button class="copy-btn" onclick="copyRegex()">复制</button>`;
+    if (parsed.explanation) explanationDiv.innerHTML = `<strong>📖 AI 解释：</strong><br>${escHtml(parsed.explanation)}<br><br>`;
+    explainRegex(parsed.regex);
+    if (parsed.example && !testInput.value) testInput.value = parsed.example;
+    updateFlagsUI(); doMatch(); generateCodeForAll(parsed.regex, state.currentFlags);
+    showToast('正则生成成功！');
+  } catch(e) {
+    regexDisplay.innerHTML = `<span style="color:var(--danger)">❌ ${escHtml(e.message)}</span>`;
+    showToast(e.message,'error');
+  } finally { state.loading=false; generateBtn.disabled=false; generateBtn.innerHTML='🤖 AI 生成'; }
+}
+
+// ===== Flags =====
+function updateFlagsUI() {
+  flagInputs.forEach(btn => {
+    const f = btn.dataset.flag;
+    const active = state.currentFlags.includes(f);
+    btn.classList.toggle('active', active);
+    btn.style.background = active ? 'var(--primary)' : 'var(--surface2)';
+    btn.style.color = active ? '#fff' : 'var(--text2)';
+  });
+}
+updateFlagsUI();
+
+flagInputs.forEach(btn => {
+  btn.addEventListener('click', () => {
+    const f = btn.dataset.flag;
+    state.currentFlags = state.currentFlags.includes(f) ? state.currentFlags.replace(f,'') : state.currentFlags + f;
+    updateFlagsUI(); doMatch();
+    if (state.currentRegex) generateCodeForAll(state.currentRegex, state.currentFlags);
+  });
+});
+
+// ===== Match =====
+function doMatch() {
+  const text = testInput.value, pattern = state.currentRegex;
+  if (!pattern) { matchResult.innerHTML='<span style="color:var(--text2)">等待正则表达式...</span>'; matchCount.textContent=''; return; }
+  if (!text) { matchResult.innerHTML='<span style="color:var(--text2)">输入测试文本查看匹配结果</span>'; matchCount.textContent=''; return; }
+  try {
+    const re = new RegExp(pattern, state.currentFlags.replace(/[^gimsuy]/g,''));
+    const matches = [];
+    let m;
+    if (re.global) { while((m=re.exec(text))!==null) { matches.push({start:m.index,end:m.index+m[0].length,text:m[0]}); if(!m[0].length) re.lastIndex++; } }
+    else { m=re.exec(text); if(m) matches.push({start:m.index,end:m.index+m[0].length,text:m[0]}); }
+    if (!matches.length) { matchResult.innerHTML='<span style="color:var(--warning)">⚠️ 无匹配</span>'; matchCount.textContent='0 个匹配'; return; }
+    let html='', lastIdx=0;
+    matches.forEach(mt => { html+=escHtml(text.slice(lastIdx,mt.start)); html+=`<span class="match">${escHtml(mt.text)}</span>`; lastIdx=mt.end; });
+    html += escHtml(text.slice(lastIdx));
+    matchResult.innerHTML = html; matchCount.textContent = `${matches.length} 个匹配`;
+  } catch(e) { matchResult.innerHTML=`<span style="color:var(--danger)">❌ 正则错误: ${escHtml(e.message)}</span>`; matchCount.textContent=''; }
+}
+testInput.addEventListener('input', doMatch);
+// ===== Regex Explanation =====
+function explainRegex(regex) {
+  const parts = [];
+  const tokenMap = [
+    [/^\^/, '^ 行首锚点','part-anchor'], [/^\$/, '$ 行尾锚点','part-anchor'], [/^\\b/, '\\b 单词边界','part-anchor'],
+    [/^\\d/, '\\d 数字[0-9]','part-char'], [/^\\D/, '\\D 非数字','part-char'],
+    [/^\\w/, '\\w 单词字符','part-char'], [/^\\W/, '\\W 非单词字符','part-char'],
+    [/^\\s/, '\\s 空白字符','part-char'], [/^\\S/, '\\S 非空白字符','part-char'],
+    [/^\\n/, '\\n 换行符','part-escape'], [/^\\t/, '\\t 制表符','part-escape'],
+    [/^\\[\\\/\(\)\{\}\|\^\$\.\*\+\?]/, null,'part-escape'],
+    [/^\\./, '\\. 字面点号','part-escape'], [/^\./, '. 任意字符','part-char'],
+    [/^\[(?:\\\]|[^\]])*\]/, null,'part-char'],
+    [/^\((?:\?[:=!]|(?:\?<[!=]))?/, null,'part-group'], [/^\)/, ') 分组结束','part-group'],
+    [/^\{(\d+)(?:,(\d*))?\}/, null,'part-quant'],
+    [/^\+\??/, null,'part-quant'], [/^\*\??/, null,'part-quant'], [/^\?\??/, null,'part-quant'],
+    [/^\|/, '| 或','part-group']
+  ];
+  let remaining = regex, safety = 0;
+  while (remaining.length > 0 && safety++ < 500) {
+    let matched = false;
+    for (const [pattern, label, cls] of tokenMap) {
+      const m = remaining.match(pattern);
+      if (m) {
+        const token = m[0]; let desc = label || token;
+        if (!label) {
+          if (token.startsWith('[')) desc = `${token} 字符集`;
+          else if (token.startsWith('(')) {
+            const map = {'(':'( 捕获分组','(?:':'(?:非捕获分组','(?=':'(?=正向前瞻','(?!':'(?!负向前瞻','(?<=':'(?<=正向后顾','(?<!':'(?<!负向后顾'};
+            desc = map[token] || token+' 分组';
+          }
+          else if (token.startsWith('{')) desc = `${token} 量词`;
+          else if (token.startsWith('+')) desc = `${token} 一次或多次`;
+          else if (token.startsWith('*')) desc = `${token} 零次或多次`;
+          else if (token.startsWith('?')) desc = `${token} 零次或一次`;
+          else if (token.startsWith('\\')) desc = `${token} 转义字符`;
+        }
+        parts.push(`<span class="part ${cls}">${escHtml(desc)}</span>`);
+        remaining = remaining.slice(token.length); matched = true; break;
+      }
+    }
+    if (!matched) { parts.push(`<span class="part part-char">${escHtml(remaining[0])} 字面量</span>`); remaining = remaining.slice(1); }
+  }
+  const existing = explanationDiv.innerHTML;
+  const aiPart = existing.includes('AI 解释') ? existing.split('<strong>🔍')[0] : '';
+  explanationDiv.innerHTML = aiPart + '<strong>🔍 结构分析：</strong><br>' + parts.join(' ');
+}
+// ===== Code Generation =====
+const codeGenerators = {
+  javascript: (r,f) => `// JavaScript\nconst regex = /${r}/${f};\nconst text = "your text here";\n\n// 测试匹配\nconsole.log(regex.test(text));\n\n// 查找所有匹配\nconst matches = text.match(regex);\nconsole.log(matches);\n\n// 替换\nconst result = text.replace(regex, "replacement");\nconsole.log(result);`,
+
+  python: (r,f) => {
+    const pf = []; if(f.includes('i')) pf.push('re.IGNORECASE'); if(f.includes('m')) pf.push('re.MULTILINE'); if(f.includes('s')) pf.push('re.DOTALL');
+    const fs = pf.length ? ', '+pf.join(' | ') : '';
+    return `# Python\nimport re\n\npattern = r'${r}'\ntext = "your text here"\n\n# 测试匹配\nmatch = re.search(pattern, text${fs})\nif match:\n    print(f"Found: {match.group()}")\n\n# 查找所有匹配\nmatches = re.findall(pattern, text${fs})\nprint(matches)\n\n# 替换\nresult = re.sub(pattern, "replacement", text${fs})\nprint(result)`;
+  },
+
+  java: (r,f) => {
+    const jf = []; if(f.includes('i')) jf.push('Pattern.CASE_INSENSITIVE'); if(f.includes('m')) jf.push('Pattern.MULTILINE'); if(f.includes('s')) jf.push('Pattern.DOTALL');
+    const fs = jf.length ? ', '+jf.join(' | ') : '';
+    const e = r.replace(/\\/g,'\\\\');
+    return `// Java\nimport java.util.regex.*;\n\npublic class RegexExample {\n    public static void main(String[] args) {\n        Pattern pattern = Pattern.compile("${e}"${fs});\n        String text = "your text here";\n        Matcher matcher = pattern.matcher(text);\n\n        // 查找所有匹配\n        while (matcher.find()) {\n            System.out.println("Found: " + matcher.group());\n        }\n\n        // 替换\n        String result = pattern.matcher(text).replaceAll("replacement");\n        System.out.println(result);\n    }\n}`;
+  },
+
+  go: (r,f) => {
+    let gf = ''; if(f.includes('i')) gf+='(?i)'; if(f.includes('m')) gf+='(?m)'; if(f.includes('s')) gf+='(?s)';
+    return "// Go\npackage main\n\nimport (\n    \"fmt\"\n    \"regexp\"\n)\n\nfunc main() {\n    re := regexp.MustCompile(`" + gf + r + "`)\n    text := \"your text here\"\n\n    // 测试匹配\n    fmt.Println(re.MatchString(text))\n\n    // 查找所有匹配\n    matches := re.FindAllString(text, -1)\n    fmt.Println(matches)\n\n    // 替换\n    result := re.ReplaceAllString(text, \"replacement\")\n    fmt.Println(result)\n}";
+  }
+};
+
+let currentLang = 'javascript';
+function generateCodeForAll(regex, flags) { showCode(currentLang, regex, flags); }
+function showCode(lang, regex, flags) {
+  currentLang = lang;
+  codeTabs.forEach(t => t.classList.toggle('active', t.dataset.lang === lang));
+  const gen = codeGenerators[lang];
+  codeContent.textContent = (gen && regex) ? gen(regex, flags||'') : '// 先生成或选择一个正则表达式';
+}
+
+codeTabs.forEach(tab => { tab.addEventListener('click', () => showCode(tab.dataset.lang, state.currentRegex, state.currentFlags)); });
+
+// ===== Manual regex input =====
+$('regexManualInput').addEventListener('input', e => {
+  const val = e.target.value.trim();
+  if (val) {
+    state.currentRegex = val;
+    regexDisplay.innerHTML = `<code>${escHtml(val)}</code><button class="copy-btn" onclick="copyRegex()">复制</button>`;
+    explanationDiv.innerHTML = '';
+    explainRegex(val); doMatch(); generateCodeForAll(val, state.currentFlags);
+  }
+});
+
+// Enter to generate
+nlInput.addEventListener('keydown', e => { if(e.key==='Enter' && !e.shiftKey) { e.preventDefault(); generateRegex(); } });
+
+generateBtn.addEventListener('click', generateRegex);
+</script>
+</body>
+</html>
