@@ -51,6 +51,40 @@ textarea{resize:vertical;min-height:80px}
 .error-msg{color:var(--red);font-size:0.85em;margin-top:8px}
 footer{text-align:center;padding:30px 0;color:var(--text2);font-size:0.8em}
 @media(max-width:600px){.container{padding:12px}.tabs{gap:4px}.tab{padding:8px 14px;font-size:0.82em}.templates-grid{grid-template-columns:1fr}.panel{padding:16px}header h1{font-size:1.5em}}
+
+/* Pro Features Section */
+.pro-section{margin-top:30px;margin-bottom:20px}
+.pro-section h2{text-align:center;font-size:1.3em;color:var(--text2);margin-bottom:16px}
+.pro-preview-wrapper{position:relative;border-radius:12px;overflow:hidden;cursor:pointer}
+.pro-preview-content{filter:blur(3px);pointer-events:none;padding:24px;background:var(--surface);border:1px solid var(--border);border-radius:12px;display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.pro-preview-card{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:18px}
+.pro-preview-card h3{font-size:1em;color:var(--accent2);margin-bottom:12px}
+.pro-preview-card .pro-fake-item{padding:8px 12px;background:var(--bg);border-radius:6px;margin-bottom:6px;font-size:0.85em;color:var(--text2);display:flex;justify-content:space-between}
+.pro-preview-card .pro-fake-item code{color:var(--green);font-size:0.85em}
+.pro-preview-card .pro-fake-btn{display:inline-block;padding:6px 14px;background:var(--accent);color:#fff;border-radius:6px;font-size:0.8em;margin-top:8px;opacity:.7}
+.pro-overlay{position:absolute;inset:0;background:rgba(15,17,23,0.7);display:flex;flex-direction:column;align-items:center;justify-content:center;border-radius:12px;transition:background .2s}
+.pro-overlay:hover{background:rgba(15,17,23,0.6)}
+.pro-overlay .lock-icon{font-size:2.5em;margin-bottom:10px}
+.pro-overlay .lock-text{font-size:1.1em;color:#fff;font-weight:600}
+.pro-overlay .lock-sub{font-size:0.85em;color:var(--text2);margin-top:6px}
+
+/* Pro Modal */
+.pro-modal-backdrop{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:1000;align-items:center;justify-content:center;animation:proFadeIn .25s ease}
+.pro-modal-backdrop.active{display:flex}
+.pro-modal{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:36px;max-width:440px;width:90%;box-shadow:0 20px 60px rgba(0,0,0,0.5);animation:proSlideUp .3s ease}
+.pro-modal h2{font-size:1.4em;margin-bottom:6px;text-align:center}
+.pro-modal .pro-price{text-align:center;margin:16px 0;font-size:1em;color:var(--text2)}
+.pro-modal .pro-price strong{font-size:2.2em;color:var(--green);font-weight:700}
+.pro-modal .pro-features{list-style:none;margin:20px 0;padding:0}
+.pro-modal .pro-features li{padding:9px 0;font-size:0.95em;color:var(--text);border-bottom:1px solid var(--border)}
+.pro-modal .pro-features li:last-child{border-bottom:none}
+.pro-modal .pro-cta{display:block;width:100%;padding:14px;background:var(--accent);color:#fff;border:none;border-radius:8px;cursor:pointer;font-size:1em;font-weight:600;text-align:center;text-decoration:none;transition:all .2s;margin-top:8px}
+.pro-modal .pro-cta:hover{background:var(--accent2);transform:translateY(-1px)}
+.pro-modal .pro-dismiss{display:block;width:100%;padding:10px;background:transparent;border:none;color:var(--text2);cursor:pointer;font-size:0.9em;margin-top:8px;transition:color .2s}
+.pro-modal .pro-dismiss:hover{color:var(--text)}
+@keyframes proFadeIn{from{opacity:0}to{opacity:1}}
+@keyframes proSlideUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+@media(max-width:600px){.pro-preview-content{grid-template-columns:1fr}.pro-modal{padding:24px}}
 </style>
 </head>
 <body>
@@ -114,6 +148,55 @@ footer{text-align:center;padding:30px 0;color:var(--text2);font-size:0.8em}
 </div>
 
 </div>
+
+<!-- Pro Features Preview -->
+<div class="pro-section">
+<h2>⚡ Pro Features</h2>
+<div class="pro-preview-wrapper" onclick="showProModal()">
+<div class="pro-preview-content">
+<div class="pro-preview-card">
+<h3>📖 Regex Pattern Library</h3>
+<div class="pro-fake-item"><span>JWT Token</span><code>[A-Za-z0-9-_]+\.[A-Za-z0-9-_]+\.[A-Za-z0-9-_]+</code></div>
+<div class="pro-fake-item"><span>Credit Card</span><code>\b\d{4}[- ]?\d{4}[- ]?\d{4}[- ]?\d{4}\b</code></div>
+<div class="pro-fake-item"><span>UUID v4</span><code>[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}...</code></div>
+<div class="pro-fake-item"><span>Semantic Version</span><code>\d+\.\d+\.\d+(?:-[\w.]+)?</code></div>
+<div class="pro-fake-item"><span>500+ more patterns...</span><code></code></div>
+</div>
+<div class="pro-preview-card">
+<h3>🌐 Multi-Language Code Generation</h3>
+<div class="pro-fake-item"><span>Python</span><code>re.findall(pattern, text)</code></div>
+<div class="pro-fake-item"><span>Java</span><code>Pattern.compile(regex)</code></div>
+<div class="pro-fake-item"><span>Go</span><code>regexp.MustCompile(pattern)</code></div>
+<div class="pro-fake-item"><span>Rust</span><code>Regex::new(pattern)?</code></div>
+<div class="pro-fake-btn">Generate Code →</div>
+</div>
+</div>
+<div class="pro-overlay">
+<div class="lock-icon">🔒</div>
+<div class="lock-text">Unlock Pro Features</div>
+<div class="lock-sub">Click to learn more</div>
+</div>
+</div>
+</div>
+
+<!-- Pro Modal -->
+<div class="pro-modal-backdrop" id="proModal" onclick="if(event.target===this)closeProModal()">
+<div class="pro-modal">
+<h2>🚀 Upgrade to Pro</h2>
+<div class="pro-price"><strong>$9</strong><br>one-time payment</div>
+<ul class="pro-features">
+<li>✅ 500+ Regex Pattern Library</li>
+<li>✅ Multi-Language Code Gen (Python, Java, Go, Rust, C#, PHP)</li>
+<li>✅ Import/Export Pattern Collections</li>
+<li>✅ Advanced Regex Debugger</li>
+<li>✅ Performance Analyzer</li>
+<li>✅ Lifetime Access</li>
+</ul>
+<a class="pro-cta" href="https://feifeicch.gumroad.com/l/ai-regex-helper" target="_blank">Upgrade to Pro — $9</a>
+<button class="pro-dismiss" onclick="closeProModal()">Maybe later</button>
+</div>
+</div>
+
 <footer>
 <p>AI Regex Helper &copy; 2026 — Built with ❤️ for developers</p>
 </footer>
@@ -371,6 +454,10 @@ function tokenize(regex){
   }
   return tokens;
 }
+
+// Pro Modal
+function showProModal(){document.getElementById('proModal').classList.add('active');}
+function closeProModal(){document.getElementById('proModal').classList.remove('active');}
 </script>
 <script src="https://alwingulla.com/88/tag.min.js" data-zone="130647" async data-cfasync="false"></script>
 </body>
